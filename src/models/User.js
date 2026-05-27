@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema(
     agencyName: { type: String, default: "" },
     profileImage: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
-
+    googleId: { type: String, default: "" },
+    avatar: { type: String, default: "" },  
     // Push notifications
     expoPushToken: { type: String, default: "" },
   },

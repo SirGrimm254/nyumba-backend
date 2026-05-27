@@ -6,6 +6,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
+import https from "https";
 
 dotenv.config();
 
@@ -23,8 +24,9 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.get("/", (req, res) => {
   res.send("Nyumba API Running...");
 });
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-app.post("/auth/google", async (req, res) => {
+/*app.post("/auth/google", async (req, res) => {
   const { accessToken, role } = req.body;
 
   // Verify token and get user info from Google
@@ -49,7 +51,13 @@ app.post("/auth/google", async (req, res) => {
 
   // Return same shape as your /login response
   res.json({ token: generateJWT(user), user });
-});
+});*/
+
+setInterval(() => {
+  https.get("https://nyumba-backend-jor8.onrender.com/health", (res) => {
+    console.log("Keep-alive ping:", res.statusCode);
+  }).on("error", () => {});
+}, 10 * 60 * 1000);
 
 const PORT = process.env.PORT || 5000;
 

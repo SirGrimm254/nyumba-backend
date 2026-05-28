@@ -21,6 +21,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Temporary debug log — remove after fixing
+console.log("Cloudinary config:", {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET ? "SET" : "MISSING",
+});
+
 // ── Multer — memory storage (no disk, works on Render) ───────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -83,8 +90,10 @@ router.post(
         uploadedVideo: videoUrl,
       });
     } catch (e) {
-      console.error("Upload error:", e);
-      res.status(500).json({ message: e.message });
+      console.error("Upload error full:", JSON.stringify(e));
+      res.status(500).json({ 
+        message: e.message || e.error?.message || JSON.stringify(e) 
+      });
     }
   }
 );

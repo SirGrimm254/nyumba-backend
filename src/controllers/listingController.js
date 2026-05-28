@@ -71,13 +71,19 @@ const createListing = async (req, res) => {
 
     const body = { ...req.body, landlord: req.user._id };
 
-    // Strip local device URIs — only keep server-uploaded paths
+    // Accept both Cloudinary full URLs and legacy relative /uploads/ paths
     if (body.images) {
       body.images = body.images.filter(
-        (img) => typeof img === "string" && img.startsWith("/uploads/")
+        (img) =>
+          typeof img === "string" &&
+          (img.startsWith("/uploads/") || img.startsWith("https://"))
       );
     }
-    if (body.video && !body.video.startsWith("/uploads/")) {
+    if (
+      body.video &&
+      !body.video.startsWith("/uploads/") &&
+      !body.video.startsWith("https://")
+    ) {
       delete body.video;
     }
 
@@ -99,18 +105,25 @@ const updateListing = async (req, res) => {
 
     const body = { ...req.body };
 
-    // Strip local device URIs
+    // Accept both Cloudinary full URLs and legacy relative /uploads/ paths
     if (body.images) {
       body.images = body.images.filter(
-        (img) => typeof img === "string" && img.startsWith("/uploads/")
+        (img) =>
+          typeof img === "string" &&
+          (img.startsWith("/uploads/") || img.startsWith("https://"))
       );
     }
-    if (body.video && !body.video.startsWith("/uploads/")) {
+    if (
+      body.video &&
+      !body.video.startsWith("/uploads/") &&
+      !body.video.startsWith("https://")
+    ) {
       delete body.video;
     }
 
     const updated = await Listing.findByIdAndUpdate(req.params.id, body, {
-      new: true, runValidators: true,
+      new: true,
+      runValidators: true,
     }).populate("landlord", "fullName phone profileImage");
     res.json(updated);
   } catch (err) {

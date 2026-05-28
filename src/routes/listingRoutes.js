@@ -1,8 +1,8 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import {
   getListings,
   getListingById,
@@ -21,37 +21,35 @@ import {
   savePushToken,
 } from "../controllers/listingController.js";
 import { protect, optionalAuth } from "../middleware/authMiddleware.js";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const router = express.Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-// ── Multer setup ──────────────────────────────────────────────────────────────
-const uploadsDir = path.join(__dirname, "../../uploads");
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+// ── Cloudinary config ─────────────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, unique + path.extname(file.originalname));
+// ── Cloudinary storage ────────────────────────────────────────────────────────
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const isVideo = file.mimetype.startsWith("video/");
+    return {
+      folder: "nyumba",
+      resource_type: isVideo ? "video" : "image",
+      allowed_formats: ["jpg", "jpeg", "png", "webp", "mp4", "mov", "avi"],
+    };
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|mp4|mov|avi/;
-    if (allowed.test(path.extname(file.originalname).toLowerCase()))
-      cb(null, true);
-    else cb(new Error("Only images and videos are allowed"));
-  },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
 });
 
-// ── Upload media — MUST be first before any /:id routes ───────────────────────
+// ── Upload media ──────────────────────────────────────────────────────────────
 router.post(
   "/upload-media",
   protect,
@@ -63,9 +61,11 @@ router.post(
     try {
       const imageFiles = req.files?.images ?? [];
       const videoFiles = req.files?.video ?? [];
+
       res.json({
-        uploadedImages: imageFiles.map((f) => `/uploads/${f.filename}`),
-        uploadedVideo: videoFiles[0] ? `/uploads/${videoFiles[0].filename}` : null,
+        // Cloudinary gives full https:// URL in file.path
+        uploadedImages: imageFiles.map((f) => f.path),
+        uploadedVideo: videoFiles[0] ? videoFiles[0].path : null,
       });
     } catch (e) {
       res.status(500).json({ message: e.message });

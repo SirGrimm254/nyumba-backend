@@ -384,7 +384,7 @@ const uploadAvatar = async (req, res) => {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const { Readable } = await import("stream");
-    const { v2 as cloudinary } = await import("cloudinary");
+    const { v2: cloudinary } = await import("cloudinary");
 
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
@@ -393,7 +393,7 @@ const uploadAvatar = async (req, res) => {
       );
       Readable.from(req.file.buffer).pipe(stream);
     });
-
+      
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { profileImage: result.secure_url },

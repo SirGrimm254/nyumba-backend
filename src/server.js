@@ -10,7 +10,6 @@ import listingRoutes from "./routes/listingRoutes.js";
 import User from "./models/User.js";
 import jwt from "jsonwebtoken";
 import https from "https";
-import uploadRoutes from "./routes/uploadRoutes.js";
 import fs from "fs";
 
 dotenv.config();
@@ -27,7 +26,6 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/listings", uploadRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

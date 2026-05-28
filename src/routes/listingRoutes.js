@@ -21,6 +21,8 @@ import {
   savePushToken,
 } from "../controllers/listingController.js";
 import { protect, optionalAuth } from "../middleware/authMiddleware.js";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -59,14 +61,11 @@ router.post(
   ]),
   (req, res) => {
     try {
-      const base = "https://nyumba-backend-jor8.onrender.com";
       const imageFiles = req.files?.images ?? [];
       const videoFiles = req.files?.video ?? [];
       res.json({
-        uploadedImages: imageFiles.map((f) => `${base}/uploads/${f.filename}`),
-        uploadedVideo: videoFiles[0]
-          ? `${base}/uploads/${videoFiles[0].filename}`
-          : null,
+        uploadedImages: imageFiles.map((f) => `/uploads/${f.filename}`),
+        uploadedVideo: videoFiles[0] ? `/uploads/${videoFiles[0].filename}` : null,
       });
     } catch (e) {
       res.status(500).json({ message: e.message });

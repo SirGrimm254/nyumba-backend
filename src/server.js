@@ -11,6 +11,7 @@ import User from "./models/User.js";
 import jwt from "jsonwebtoken";
 import https from "https";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import fs from "fs";
 
 dotenv.config();
 connectDB();
@@ -18,6 +19,10 @@ connectDB();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 app.use(cors());
 app.use(express.json());

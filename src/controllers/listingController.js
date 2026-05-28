@@ -381,20 +381,27 @@ const deleteReview = async (req, res) => {
 
 const uploadAvatar = async (req, res) => {
   try {
-    const userId = req.user.id;
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // Example image path
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const { Readable } = await import("stream");
+    const { v2 as cloudinary } = await import("cloudinary");
+
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "nyumba/avatars", resource_type: "image" },
+        (err, result) => err ? reject(err) : resolve(result)
+      );
+      Readable.from(req.file.buffer).pipe(stream);
+    });
 
     const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profileImage: imageUrl },
+      req.user._id,
+      { profileImage: result.secure_url },
       { new: true }
     );
-
     res.json(updatedUser);
   } catch (err) {
-    res.status(500).json({ message: "Avatar upload failed" });
+    res.status(500).json({ message: "Avatar upload failed", error: err.message });
   }
 };
 

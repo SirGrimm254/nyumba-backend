@@ -10,6 +10,7 @@ import listingRoutes from "./routes/listingRoutes.js";
 import User from "./models/User.js";
 import jwt from "jsonwebtoken";
 import https from "https";
+import uploadRoutes from "./routes/uploadRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -22,6 +23,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
+app.use("/api/upload", uploadRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/", (req, res) => res.send("Nyumba API Running..."));
